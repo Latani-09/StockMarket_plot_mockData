@@ -1,60 +1,136 @@
 import React, { Component } from 'react';
+import CanvasJSReact from '@canvasjs/react-charts';
 
+var CanvasJS = CanvasJSReact.CanvasJS;
+var CanvasJSChart = CanvasJSReact.CanvasJSChart;
+var updateInterval = 10000;
 export class Counter extends Component {
     constructor(props) {
         super(props);
+     
+        this.update = this.update.bind(this);
         this.state = {
-            result: null,
-            error: null,
+           forecasts: [], loading: true, 
+            time: Date.now(),
         };
-        this.url = new URL(`https://api.tinybird.co/v0/pipes/lt_pipe_6295.json`);
+
+        this.options = {
+            animationEnabled: true,
+            title: {
+                text: 'Stock Market Current Price',
+            },
+            axisX: {
+                title: "time",
+                gridThickness: 2,
+                interval: 1,
+                intervalType: "hour",
+                valueFormatString: "hh",
+                labelAngle: -20
+            },
+            axisY: {
+                title: 'Sales (in USD)',
+                prefix: '$',
+            },
+            data: [
+                {
+                    yValueFormatString: '$#,###',
+                    xValueFormatString: 'hh',
+                    type: 'spline',
+                    dataPoints: [
+                        { x: new Date(Date.UTC(2024, 2, 4, 1, 0)), y: 943 },
+                        { x: new Date(Date.UTC(2024, 2, 4, 2, 0)), y: 942 },
+                        { x: new Date(Date.UTC(2024, 2, 4, 3, 0)), y: 941 },
+                        { x: new Date(Date.UTC(2024, 2, 4, 4, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 5, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 6, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 7, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 8, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 9, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 10, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 11, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 12, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 13, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 14, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 15, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 16, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 17, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 18, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 19, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 20, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 21, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 22, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 23, 0)), y: null },
+                        { x: new Date(Date.UTC(2024, 2, 4, 24, 0)), y: null },
+                     
+                    ],
+                },
+            ],
+        };
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
     componentDidMount() {
-        this.fetchData();
-    }
+        setInterval(this.update, updateInterval);
 
-    fetchData() {
-        fetch(this.url, {
-            headers: {
-                Authorization: 'Bearer p.eyJ1IjogImJkNDhmYjhhLTIzOGUtNGZhYi1iYzRhLWVlNDBiNWM1YTQyNyIsICJpZCI6ICJhZWI4ZjE4Ni02OGUwLTRmYjAtYjFjYi0yNDAwZWIxYWQ2NDQiLCAiaG9zdCI6ICJldV9zaGFyZWQifQ.OJ2kmphiF1h4phGOtCfhk-L9BEUgLvjLcdYlBbjsr64', // Replace with your actual access token
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.data) {
-                    console.error(`There is a problem running the query: ${data}`);
-                    this.setState({ error: `There is a problem running the query: ${data}` });
-                } else {
-                    console.table(data.data);
-                    console.log('** Query columns **');
-                    for (let column of data.meta) {
-                        console.log(`${column.name} -> ${column.type}`);
-                    }
-                    this.setState({ result: data.data });
-                }
-            })
-            .catch(error => {
-                console.error(`Error fetching data: ${error.toString()}`);
-                this.setState({ error: `Error fetching data: ${error.toString()}` });
-            });
+      
     }
 
     render() {
-        const { result, error } = this.state;
-
         return (
             <div>
-                <h1>Stock market</h1>
-                {error && <p>Error: {error}</p>}
-                {result && (
-                    <div>
-                        <h2>Data:</h2>
-                        {/* Display your data in the desired format */}
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                    </div>
-                )}
+                <CanvasJSChart options={this.options} onRef={ref => this.chart = ref} />
+            
+                <table className='table table-striped' aria-labelledby="tabelLabel" onRef={ref => this.table = ref}>
+                <thead>
+                    <tr>
+                        <th>Date: {this.state.time}</th>
+                        <th>Close (C)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {this.state.forecasts.map((stock, index) => (
+                        <tr key={index}>
+                            <td>{stock.close}</td>
+                            <td>{stock.time}</td>
+                        </tr>
+                    ))}
+                </tbody>
+                </table>
             </div>
         );
     }
+
+    async update() {
+        const response = await fetch('weatherforecast');
+        const data = await response.json();
+        console.log(data)
+        this.setState({ forecasts: data, loading: false });
+        var length = this.options.data[0].dataPoints.length;
+        this.options.title.text = 'Last DataPoint Updated';
+
+        // Find the first null data point and update it
+        for (let i = 0; i < length; i++) {
+            if (this.options.data[0].dataPoints[i].y === null) {
+                console.log('forecast', this.state.forecasts[0])
+                this.options.data[0].dataPoints[i].y = this.state.forecasts[0].close;
+                break;
+            }
+        }
+
+        this.chart.render();
+
+        // Force a re-render by updating state
+       
+    }
+    async populateStockData() {
+        const response = await fetch('stock');
+        const data = await response.json();
+        console.log(data)
+       
+
+    }
+
 }
