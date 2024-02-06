@@ -13,7 +13,7 @@ namespace StockFlow.Data
 
                 // Read data from CSV
                 var csvData = ReadCsv(csvFilePath);
-                var filePath = "StockMarket.json";
+                var filePath = "ABS.json";
                 // Convert each row to JSON and send
                 foreach (var row in csvData)
                 {
@@ -46,7 +46,12 @@ namespace StockFlow.Data
 
                             for (int i = 0; i < header.Length; i++)
                             {
-                                entry[header[i]] = line[i];
+                               
+                                if (header[i]== "Date")
+                                {
+                                    entry[header[i]] = " 6 - Feb - 24";
+                                }
+                                else { entry[header[i]] = line[i]; }
                             }
 
                             csvData.Add(entry);

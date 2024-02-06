@@ -50,15 +50,15 @@ export class FetchData extends Component {
 
         return (
             <div>
-                <h1 id="tabelLabel" >Weather forecast</h1>
-                <p>This component demonstrates fetching data from the server.</p>
+                <h1 id="tabelLabel" >stock market details </h1>
+
                 {contents}
             </div>
         );
     }
 
     async populateWeatherData() {
-      const response = await fetch('weatherforecast');
+        const response = await fetch('stock');
         const data = await response.json();
         console.log(data)
         this.setState({ forecasts: data, loading: false });

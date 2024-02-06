@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using StockFlow;
 using StockFlow.Data;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,8 +9,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 /*
-using var scope = app.Services.CreateScope();
-var servicesdatacontext = scope.ServiceProvider;
+
 try
 {
     await SeedData.Seed();
@@ -20,6 +20,8 @@ catch (Exception ex)
 }
 */
 // Configure the HTTP request pipeline.
+
+
 if (!app.Environment.IsDevelopment())
 {
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
