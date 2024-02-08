@@ -3,7 +3,7 @@ import CanvasJSReact from '@canvasjs/react-charts';
 import Card from 'react-bootstrap/Card';
 var CanvasJS = CanvasJSReact.CanvasJS;
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
-var updateInterval = 10000;
+var updateInterval = 60000;
 export class Counter extends Component {
     constructor(props) {
         super(props);
@@ -13,14 +13,20 @@ export class Counter extends Component {
            stockData: [], loading: true, 
             time: Date.now(),
             trend: [],
-            company:'XYZ'
+            company_plot:'XYZ'
         };
         let dataArray = [];
-        let hh = 0;
-        for (let i = 1; i <= 60; i++) {
+        // Get the current date and time
+        let currentDate = new Date();
+
+        // Get the current hours
+        
+        let hh = currentDate.getHours()-5;
+       
+        for (let i = currentDate.getMinutes() - 40; i <= 60; i++) {
             const dataPoint = {
                 x: new Date(Date.UTC(2024, 2, 4, hh, i)),
-                y: i <= 4 ? 943 - i : null
+                y:  null
             };
 
             dataArray.push(dataPoint);
@@ -30,7 +36,7 @@ export class Counter extends Component {
             zoomEnabled: true,
            
             title: {
-                text: 'Stock Market Current Price',
+                text: this.state.company_plot,
             },
             axisX: {
                 
@@ -78,6 +84,8 @@ export class Counter extends Component {
 
     componentDidMount() {
         setInterval(this.update, updateInterval);
+        this.load_data();
+        this.update();
 
       
     }
@@ -88,8 +96,8 @@ export class Counter extends Component {
                 <div>
                     <CanvasJSChart options={this.options} onRef={ref => this.chart = ref} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', border:'black' }} onRef={ref => this.carditems = ref} >
-                    <h2>Trending</h2>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', border:'black' }} onRef={ref => this.carditems = ref} >
+                    
                     {this.state.trend.map((companystock, index) => (
                         <Card key={index} style={{ width: '10rem', margin: '2px',height:'5rem' }}>
                             <Card.Body>
@@ -108,7 +116,46 @@ export class Counter extends Component {
     }
 
     async update() {
-        const response = await fetch(`stockmockapi/close-price?company=${this.state.company}`, {
+
+        const responseTrend = await fetch('stockmockapi/trend', {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const dataTrend = await responseTrend.json();
+        console.log("all data", dataTrend);
+        this.setState({ trend: dataTrend });
+        const length = this.options.data[0].dataPoints.length;
+        var dataCurrent = null;
+        for (let i = 0; i < dataTrend.length; i++) {
+            console.log('symbol', 'coming from server: ',dataTrend[i].symbol, ', company to be plotted: ',this.state.company_plot);
+            if (dataTrend[i].symbol == this.state.company_plot) {
+                dataCurrent = dataTrend[i].close;
+                this.state.stockData.push(dataTrend[i]);
+                dataTrend.splice(i, 1);
+                break;
+            }
+
+        }
+        
+    for(let i = 0; i <length; i++) {
+            if (this.options.data[0].dataPoints[i].y === null) {
+               
+                this.options.data[0].dataPoints[i].y = dataCurrent;
+                break;
+
+    };
+};
+        this.chart.render();
+        this.carditems.render();
+
+        // Force a re-render by updating state
+       
+    }
+    async load_data() {
+        console.log('before loading ', this.options.data[0].dataPoints)
+        const response = await fetch(`stockmockapi/close-price?company=${this.state.company_plot}`, {
             headers: {
                 'Content-Type': 'application/json',
             }
@@ -116,30 +163,19 @@ export class Counter extends Component {
         const data = await response.json();
         console.log(data)
         this.setState({ stockData: data, loading: false });
-        var length = this.options.data[0].dataPoints.length;
-        this.options.title.text = 'Close ';
+        var length = data.length;
+        this.options.title.text = this.state.company_plot;
 
         // Find the first null data point and update it
         for (let i = 0; i < length; i++) {
             if (this.options.data[0].dataPoints[i].y === null) {
 
-                this.options.data[0].dataPoints[i].y = this.state.stockData[0].close;
-                break;
+                this.options.data[0].dataPoints[i].y = data[i].close;
+
             }
         }
-        const responseTrend = await fetch('stockmockapi/trend', {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        const dataTrend = await responseTrend.json();
-        this.setState({ trend: dataTrend});
         this.chart.render();
-        this.carditems.render();
-
-        // Force a re-render by updating state
-       
+        console.log('after loading points', this.options.data[0].dataPoints)
     }
-
 
 }

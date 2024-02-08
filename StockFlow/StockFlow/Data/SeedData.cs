@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using MongoDB.Driver;
+using Newtonsoft.Json;
 using SharpCompress.Common;
 
 namespace StockFlow.Data
@@ -11,22 +13,22 @@ namespace StockFlow.Data
             int intervalInSeconds = 60; // Set your desired interval in seconds
 
 
-                // Read data from CSV
-                var csvData = ReadCsv(csvFilePath);
-                var filePath = "ABS.json";
-                // Convert each row to JSON and send
-                foreach (var row in csvData)
-                {
-                    string json = ConvertRowToJson(row);
-                    // Replace the following line with your logic to send the JSON object
-                    Console.WriteLine($"Sending JSON: {json}");
-                    File.AppendAllText(filePath, json + Environment.NewLine);
+            // Read data from CSV
+            var csvData = ReadCsv(csvFilePath);
+            var filePath = "ABS.json";
+            // Convert each row to JSON and send
+            foreach (var row in csvData)
+            {
+                string json = ConvertRowToJson(row);
+                // Replace the following line with your logic to send the JSON object
+                Console.WriteLine($"Sending JSON: {json}");
+                File.AppendAllText(filePath, json + Environment.NewLine);
 
             }
 
-                // Wait for the specified interval before the next iteration
+            // Wait for the specified interval before the next iteration
 
-            
+
             static List<Dictionary<string, string>> ReadCsv(string filePath)
             {
                 var csvData = new List<Dictionary<string, string>>();
@@ -46,8 +48,8 @@ namespace StockFlow.Data
 
                             for (int i = 0; i < header.Length; i++)
                             {
-                               
-                                if (header[i]== "Date")
+
+                                if (header[i] == "Date")
                                 {
                                     entry[header[i]] = " 6 - Feb - 24";
                                 }
@@ -70,6 +72,43 @@ namespace StockFlow.Data
             }
         }
 
+        public static async Task Updatetimestamp()
+        {
+
+            List<stockData> data_last_min = new List<stockData>();
+            List<string> companySymbols = new List<string> { "ABS", "ABX", "ACW", "XYZ" };
+            foreach (var companysymbol in companySymbols)
+            {
+                string jsonFilePath = $"stock_details/{companysymbol}.json";
+                string DataJson = System.IO.File.ReadAllText(jsonFilePath);
+
+
+
+
+                List<stockData> dataObject = JsonConvert.DeserializeObject<List<stockData>>(DataJson);
+                var i = 0;
+                // Get current date and time
+                DateTime DateAndTime = DateTime.Now;
+
+                DateTime date = DateAndTime.AddMinutes(-10);
+
+                while (i < dataObject.Count)
+                {
+
+                    dataObject[i].Date = date.Date;
+                    dataObject[i].Time = date.ToLocalTime();
+                    i += 1;
+                    Console.WriteLine(i);
+                    date = date.AddMinutes(1);
+                }
+                Console.WriteLine(dataObject[0].Date);
+                // Serialize the updated list back to JSON
+                string updatedJson = JsonConvert.SerializeObject(dataObject, Formatting.Indented);
+
+                // Write the updated JSON back to the file
+                File.WriteAllText(jsonFilePath, updatedJson);
+            }
+        }
     }
 }
 

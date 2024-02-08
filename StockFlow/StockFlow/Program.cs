@@ -8,17 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
-/*
+
 
 try
 {
-    await SeedData.Seed();
+    await SeedData.Updatetimestamp();
 }
 catch (Exception ex)
 {
     Console.WriteLine(ex);
 }
-*/
+
 // Configure the HTTP request pipeline.
 
 
