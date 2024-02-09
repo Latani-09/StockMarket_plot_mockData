@@ -112,15 +112,11 @@ namespace StockFlow.Controllers
             static List<stockData?> RetrieveDataWithinLastMinuteAsync()
             {
                 List<stockData> data_last_min = new List<stockData>();
-                List<string> companySymbols = new List<string> { "ABS", "ABX", "ACW", "XYZ" };
+                List<string> companySymbols = new List<string> { "ABS", "ABX", "ACW", "XPP","IBN" };
                 foreach (var companysymbol in companySymbols)
                 {
                     string jsonFilePath = $"stock_details/{companysymbol}.json";
                     string DataJson = System.IO.File.ReadAllText(jsonFilePath);
-
-                    
-                    
-                    
                     List<stockData> dataObject = JsonConvert.DeserializeObject<List<stockData>>(DataJson);
 
 
@@ -141,7 +137,11 @@ namespace StockFlow.Controllers
                                 Symbol = companysymbol,
                                 Time = DateTime.Parse($"{dataObject[i].Time}"),
                                 Date = DateTime.Parse($"{dataObject[i].Date}"),
-                                Close = dataObject[i].Close
+                                Close = dataObject[i].Close,
+                                Open = dataObject[i].Open,
+
+
+                               
                                 // Add other relevant data you want to retrieve
                             };
                             data_last_min.Add(stock_last);

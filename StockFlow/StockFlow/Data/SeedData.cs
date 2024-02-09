@@ -76,7 +76,7 @@ namespace StockFlow.Data
         {
 
             List<stockData> data_last_min = new List<stockData>();
-            List<string> companySymbols = new List<string> { "ABS", "ABX", "ACW", "XYZ" };
+            List<string> companySymbols = new List<string> { "ABS", "ABX", "ACW", "XPP","IBN" };
             foreach (var companysymbol in companySymbols)
             {
                 string jsonFilePath = $"stock_details/{companysymbol}.json";

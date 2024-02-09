@@ -3,7 +3,7 @@ import CanvasJSReact from '@canvasjs/react-charts';
 import Card from 'react-bootstrap/Card';
 var CanvasJS = CanvasJSReact.CanvasJS;
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
-var updateInterval = 60000;
+var updateInterval = 60000; 
 export class Counter extends Component {
     constructor(props) {
         super(props);
@@ -13,7 +13,7 @@ export class Counter extends Component {
            stockData: [], loading: true, 
             time: Date.now(),
             trend: [],
-            company_plot:'XYZ'
+            company_plot:'XPP'
         };
         let dataArray = [];
         // Get the current date and time
@@ -21,9 +21,9 @@ export class Counter extends Component {
 
         // Get the current hours
         
-        let hh = currentDate.getHours()-5;
-       
-        for (let i = currentDate.getMinutes() - 40; i <= 60; i++) {
+        let hh = currentDate.getHours()-5; //convert to local time 
+        let mm = currentDate.getMinutes() - 40   // plot data from 10 min before
+        for (let i =mm ; i <=mm+ 60; i++) {
             const dataPoint = {
                 x: new Date(Date.UTC(2024, 2, 4, hh, i)),
                 y:  null
@@ -99,15 +99,19 @@ export class Counter extends Component {
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', border:'black' }} onRef={ref => this.carditems = ref} >
                     
                     {this.state.trend.map((companystock, index) => (
-                        <Card key={index} style={{ width: '10rem', margin: '2px',height:'5rem' }}>
+                        <Card key={index} style={{ width: '10rem', margin: '2px',height:'auto' }}>
                             <Card.Body>
                                 <Card.Text >
                                     <h6>{companystock.symbol}</h6>
-                                    <p>Close: {companystock.close} </p>
+                                    <p>Close: {companystock.close} Open:  {companystock.open}</p>
                                 </Card.Text>
                             </Card.Body>
                         </Card>
                     ))}
+                </div>
+                <div>
+
+
                 </div>
 
             
@@ -143,6 +147,7 @@ export class Counter extends Component {
             if (this.options.data[0].dataPoints[i].y === null) {
                
                 this.options.data[0].dataPoints[i].y = dataCurrent;
+                
                 break;
 
     };
@@ -154,6 +159,7 @@ export class Counter extends Component {
        
     }
     async load_data() {
+ 
         console.log('before loading ', this.options.data[0].dataPoints)
         const response = await fetch(`stockmockapi/close-price?company=${this.state.company_plot}`, {
             headers: {
@@ -165,15 +171,25 @@ export class Counter extends Component {
         this.setState({ stockData: data, loading: false });
         var length = data.length;
         this.options.title.text = this.state.company_plot;
-
+        var currentDate= new Date()
+        let hh = currentDate.getHours() - 5;     //convert to local time 
+        let mm = currentDate.getMinutes() - 40
         // Find the first null data point and update it
         for (let i = 0; i < length; i++) {
             if (this.options.data[0].dataPoints[i].y === null) {
 
                 this.options.data[0].dataPoints[i].y = data[i].close;
+                this.options.data[0].dataPoints[i].x = new Date(Date.UTC(2024, 2, 4, hh, mm + i));
 
             }
         }
+        for (let i = length; i < 60-length; i++) {
+            if (this.options.data[0].dataPoints[i].y === null) {
+                this.options.data[0].dataPoints[i].x = new Date(Date.UTC(2024, 2, 4, hh, mm+ i));
+
+            }
+        }
+
         this.chart.render();
         console.log('after loading points', this.options.data[0].dataPoints)
     }
